@@ -35,15 +35,17 @@ app.post("/api/insertUser", (require, response) => {
     var id = UserFirstName+UserAge+UserCountry;
     db.query(
         sqlInsert,
-        [UserGender, UserCountry, UserFirstName, UserLastName, UserPassword, UserAge],
-        (err, result) => {
-          if (err) {
-            console.log(err);
-            return response.status(500).send(err);
+        [UserGender, UserCountry, UserFirstName, UserLastName, UserPassword, UserAge], (err, result) => {
+          if (err){
+              console.log(err);
+              response.status(500);
           }
-          response.status(200).send(result);
-        }
-      );
+          else{
+              console.log(result);
+              response.send(result);
+          }
+  
+      });
     });
 
 app.post("/api/searchCondition", (require, response) => {

@@ -9,7 +9,8 @@ function App() {
   const [UserCountry, setUserCountry] = useState('');
   const [UserGender, setUserGender] = useState('');
   const [UserAge, setUserAge] = useState('');
-  
+  const [showCreateUserList,setshowCreateUserList] = useState([]);
+
   const [searchConditionName,setsearchConditionName] = useState('');
   const [searchConditionList,setsearchConditionList] = useState([]);
 
@@ -17,6 +18,8 @@ function App() {
 
   const [UserOldName,setUserOldName] = useState('');
   const [UserNewName,setUserNewName] = useState('');
+  const [updateUserNameList,setupdateUserNameList] = useState([]);
+  
   
   const [findRelateSymName,setfindRelateSymName] = useState('');
   const [findRelateSymList,setfindRelateSymList] = useState([]);
@@ -39,13 +42,19 @@ function App() {
       UserCountry: UserCountry,
       UserGender: UserGender,
       UserAge: UserAge
-    }).then(() => {
-    window.location.reload();
-  })
-  .catch(error => {
-    console.log(error);
-  });
-};
+    })
+    .then((response) => {
+      setshowCreateUserList([
+        ...showCreateUserList,
+        {
+          name: `${UserFirstName} ${UserLastName}`
+        }
+      ]);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  };
 
 const searchCondition = () => { 
     Axios.post('http://localhost:3002/api/searchCondition', {
@@ -53,7 +62,6 @@ const searchCondition = () => {
     })
     .then(function (response) {
       console.log(response.data[0]);
-      
       setsearchConditionList(response.data);
 
     })
@@ -83,14 +91,17 @@ const searchCondition = () => {
       UserOldName: UserOldName,
       UserNewName: UserNewName
     })
-    .then(function (response) {
-     window.location.reload();
-
+    .then((response) => {
+      setupdateUserNameList([
+        ...updateUserNameList,
+        {
+          name: `${UserNewName}`
+        }
+      ]);
     })
-    .catch(function (error) {
+    .catch((error) => {
       console.log(error);
     });
-
   };
 
   const findRelateSym = () => { 
@@ -152,6 +163,15 @@ const searchCondition = () => {
           setUserAge(e.target.value)
         }}/>
         <button onClick={submitCreateUser}> Submit</button>
+        {showCreateUserList.map((val) => {
+          return (
+            <div className = "card" id="insertuser">
+              <h3>New user created! </h3>
+              <p> User information for {val.name} has been successfully inserted! </p>
+              </div>
+          );
+
+        })}
       </div>
       
       
@@ -204,6 +224,15 @@ const searchCondition = () => {
           } }/>
           
           <button onClick={updateUserName}>Update</button>
+          {updateUserNameList.map((val) => {
+          return (
+            <div className = "card" id="insertuser">
+              <h3>Name updated! </h3>
+              <p> User name changed to {val.name}! </p>
+              </div>
+          );
+
+        })}
         
         
       </div>
