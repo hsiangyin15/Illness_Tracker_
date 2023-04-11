@@ -13,6 +13,12 @@ function App() {
   const [searchConditionName,setsearchConditionName] = useState('');
   const [searchConditionList,setsearchConditionList] = useState([]);
 
+  const [deleteUserName,setdeleteUserName] = useState('');
+
+  const [UserOldName,setUserOldName] = useState('');
+  const [UserNewName,setUserNewName] = useState('');
+
+
 //   useEffect(() => {
 //     Axios.get('http://localhost:3002/api/get').then((response) => {
 //       setillnessWishList(response.data)
@@ -43,6 +49,36 @@ const searchCondition = () => {
       console.log(response.data[0]);
       
       setsearchConditionList(response.data);
+
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+  };
+
+
+  const deleteUser = () => { 
+    Axios.post('http://localhost:3002/api/deleteUser', {
+      deleteUserName: deleteUserName
+    })
+    .then(function (response) {
+     window.location.reload();
+
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+  };
+
+  const updateUserName = () => { 
+    Axios.post('http://localhost:3002/api/updateUser', {
+      UserOldName: UserOldName,
+      UserNewName: UserNewName
+    })
+    .then(function (response) {
+     window.location.reload();
 
     })
     .catch(function (error) {
@@ -107,6 +143,36 @@ const searchCondition = () => {
         
         
       </div>
+
+      <h1>Delete</h1>
+      <div className="form">
+          <label> Delete an existing user with FirstName:</label>
+          <input type="text" name="deleteUserName" onChange={(e) => {
+            setdeleteUserName(e.target.value)
+          } }/>
+          
+          <button onClick={deleteUser}> Delete</button>
+        
+        
+      </div>
+
+
+      <h1>Update</h1>
+      <div className="form">
+          <label> Old Firstname:</label>
+          <input type="text" name="UserOldName" onChange={(e) => {
+            setUserOldName(e.target.value)
+          } }/>
+          <label> New Firstname:</label>
+          <input type="text" name="UserNewName" onChange={(e) => {
+            setUserNewName(e.target.value)
+          } }/>
+          
+          <button onClick={updateUserName}>Update</button>
+        
+        
+      </div>
+
       
     </div>
   );

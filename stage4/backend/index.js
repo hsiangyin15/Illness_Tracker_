@@ -62,6 +62,44 @@ app.post("/api/searchCondition", (require, response) => {
     });
 });
 
+
+app.post("/api/deleteUser", (require, response) => {
+  const deleteUserName = require.body.deleteUserName;
+  const sqlDelete = "DELETE FROM `USER` WHERE `FirstName`= ?";
+  db.query(sqlDelete, deleteUserName, (err, result) => {
+      if (err){
+          console.log(err);
+          response.status(500);
+      }
+      else{
+          console.log(result);
+          response.send(result);
+      }
+
+  });
+});
+
+app.post("/api/updateUser", (require, response) => {
+  const UserOldName = require.body.UserOldName;
+  const UserNewName = require.body.UserNewName;
+
+  const sqlUpdate = "UPDATE `USER` SET `FirstName` = ? WHERE `FirstName` = ?";
+  db.query(sqlUpdate, [UserNewName, UserOldName], (err, result) => {
+      if (err){
+          console.log(err);
+          response.status(500);
+      }
+      else{
+          console.log(result);
+          response.send(result);
+      }
+
+  });
+});
+
+
+
+
 app.listen(3002, () => {
     console.log("running on port 3002");
 })
