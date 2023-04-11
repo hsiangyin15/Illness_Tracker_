@@ -17,6 +17,12 @@ function App() {
 
   const [UserOldName,setUserOldName] = useState('');
   const [UserNewName,setUserNewName] = useState('');
+  
+  const [findRelateSymName,setfindRelateSymName] = useState('');
+  const [findRelateSymList,setfindRelateSymList] = useState([]);
+
+  const [symptomsTopAmount,setsymptomsTopAmount] = useState('');
+  const [symptomsTopAmountList,setsymptomsTopAmountList] = useState([]);  
 
 
 //   useEffect(() => {
@@ -86,6 +92,35 @@ const searchCondition = () => {
     });
 
   };
+
+  const findRelateSym = () => { 
+    Axios.post('http://localhost:3002/api/findRelateSym', {
+      findRelateSymName: findRelateSymName
+    })
+    .then(function (response) {
+      console.log(response.data[0]);
+      setfindRelateSymList(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+  };
+
+  const findTopSym  = () => { 
+    Axios.post('http://localhost:3002/api/findTopSym', {
+      symptomsTopAmount: symptomsTopAmount
+    })
+    .then(function (response) {
+      console.log(response.data[0]);
+      setsymptomsTopAmountList(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+  };
+  
 
   return (
     
@@ -171,6 +206,38 @@ const searchCondition = () => {
           <button onClick={updateUserName}>Update</button>
         
         
+      </div>
+
+      <h1>Find multi-related symptoms and age: </h1>
+      <div className="form">
+          <label> Condition name:</label>
+          <input type="text" name="findRelateSymName" onChange={(e) => {
+            setfindRelateSymName(e.target.value)
+          } }/>
+          
+          <button onClick={findRelateSym}>Find</button>
+          {findRelateSymList.map((val) => {
+          return (
+            <p> Related symptoms: {val.symptom_name} - Age: {val.avg_age}</p>
+          );
+
+        })}
+      </div>
+
+      <h1>Top symptoms that occurs in most conditions: </h1>
+      <div className="form">
+          <label> Type in the top-ranked amount you would like to learn:</label>
+          <input type="text" name="symptomsTopAmount" onChange={(e) => {
+            setsymptomsTopAmount(e.target.value)
+          } }/>
+          
+          <button onClick={findTopSym}>Find</button>
+          {symptomsTopAmountList.map((val) => {
+          return (
+            <p> Related symptoms: {val.symptom_name} - Amount: {val.cnt}</p>
+          );
+
+        })}
       </div>
 
       

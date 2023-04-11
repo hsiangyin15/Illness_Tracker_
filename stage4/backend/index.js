@@ -97,6 +97,37 @@ app.post("/api/updateUser", (require, response) => {
   });
 });
 
+app.post("/api/findRelateSym", (require, response) => {
+  const findRelateSymName = require.body.findRelateSymName;
+  const sqlSelect = "SELECT c.name AS condition_name, s.name AS symptom_name, AVG(s.average_age) AS avg_age FROM CONDITIONS c JOIN relate_to r1 ON c.trackable_id = r1.condition_id JOIN SYMPTOMS s ON r1.symptom_id = s.trackable_id JOIN relate_to r2 ON r1.symptom_id = r2.symptom_id AND r1.condition_id != r2.condition_id WHERE c.name = ? GROUP BY c.name, s.name HAVING COUNT(DISTINCT r2.condition_id) > 1;";
+  db.query(sqlSelect, findRelateSymName, (err, result) => {
+      if (err){
+          console.log(err);
+          response.status(500);
+      }
+      else{
+          console.log(result);
+          response.send(result);
+      }
+
+  });
+});
+
+app.post("/api/findTopSym", (require, response) => {
+  const symptomsTopAmount = parseInt(require.body.symptomsTopAmount);
+  const sqlSelect = "SELECT r.symptom_id,r.symptom_name , COUNT(r.symptom_id) AS cnt FROM relate_to r  GROUP BY r.symptom_id, r.symptom_name ORDER BY COUNT(r.symptom_id) DESC LIMIT ?;";
+  db.query(sqlSelect, symptomsTopAmount, (err, result) => {
+      if (err){
+          console.log(err);
+          response.status(500);
+      }
+      else{
+          console.log(result);
+          response.send(result);
+      }
+
+  });
+});
 
 
 
