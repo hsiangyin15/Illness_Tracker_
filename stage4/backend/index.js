@@ -66,9 +66,10 @@ app.post("/api/searchCondition", (require, response) => {
 
 
 app.post("/api/deleteUser", (require, response) => {
-  const deleteUserName = require.body.deleteUserName;
-  const sqlDelete = "DELETE FROM `USER` WHERE `FirstName`= ?";
-  db.query(sqlDelete, deleteUserName, (err, result) => {
+  const deleteUserFirstName = require.body.deleteUserFirstName;
+  const deleteUserLastName = require.body.deleteUserLastName;
+  const sqlDelete = "DELETE FROM `USER` WHERE `FirstName`= ? and `LastName`= ?";
+  db.query(sqlDelete, [deleteUserFirstName, deleteUserLastName], (err, result) => {
       if (err){
           console.log(err);
           response.status(500);

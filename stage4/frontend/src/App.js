@@ -14,7 +14,9 @@ function App() {
   const [searchConditionName,setsearchConditionName] = useState('');
   const [searchConditionList,setsearchConditionList] = useState([]);
 
-  const [deleteUserName,setdeleteUserName] = useState('');
+  const [deleteUserFirstName,setdeleteUserFirstName] = useState('');
+  const [deleteUserLastName,setdeleteUserLastName] = useState('');
+  const [showDeleteUserList,setshowDeleteUserList] = useState([]);
 
   const [UserOldName,setUserOldName] = useState('');
   const [UserNewName,setUserNewName] = useState('');
@@ -74,16 +76,20 @@ const searchCondition = () => {
 
   const deleteUser = () => { 
     Axios.post('http://localhost:3002/api/deleteUser', {
-      deleteUserName: deleteUserName
+      deleteUserFirstName: deleteUserFirstName,
+      deleteUserLastName: deleteUserLastName
     })
-    .then(function (response) {
-     window.location.reload();
-
+    .then((response) => {
+      setshowDeleteUserList([
+        ...showDeleteUserList,
+        {
+          name: `${deleteUserFirstName} ${deleteUserLastName}`
+        }
+      ]);
     })
-    .catch(function (error) {
+    .catch((error) => {
       console.log(error);
     });
-
   };
 
   const updateUserName = () => { 
@@ -201,12 +207,26 @@ const searchCondition = () => {
 
       <h1>Delete</h1>
       <div className="form">
-          <label> Delete an existing user with FirstName:</label>
-          <input type="text" name="deleteUserName" onChange={(e) => {
-            setdeleteUserName(e.target.value)
+          <label> Delete an existing user with their name:</label>
+          <p>First Name:</p>
+          <input type="text" name="deleteUserFirstName" onChange={(e) => {
+            setdeleteUserFirstName(e.target.value)
+          } }/>
+           <p>Last Name:</p>
+          <input type="text" name="deleteUserLastName" onChange={(e) => {
+            setdeleteUserLastName(e.target.value)
           } }/>
           
           <button onClick={deleteUser}> Delete</button>
+          {showDeleteUserList.map((val) => {
+          return (
+            <div className = "card" id="insertuser">
+              <h3>User deleted! </h3>
+              <p> User {val.name} is deleted! </p>
+              </div>
+          );
+
+        })}
         
         
       </div>
