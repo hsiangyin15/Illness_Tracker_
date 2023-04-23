@@ -48,6 +48,33 @@ app.post("/api/insertUser", (require, response) => {
       });
     });
 
+    app.post("/api/addWish", (require, response) => {
+        const wishFirstName = require.body.wishFirstName;
+        const wishLastName = require.body.wishLastName;
+        const wishRequestName = require.body.wishRequestName;
+        const wishwishEmail = require.body.wishwishEmail;
+      
+        const sqlQuery = "SELECT user_id FROM USER WHERE FirstName = ? AND LastName = ?";
+        db.query(sqlQuery, [wishFirstName, wishLastName], (err, result) => {
+          if (err) {
+            console.log(err);
+            response.status(500).send("Error while querying USER table");
+          } else {
+            const userId = result[0].user_id;
+            const sqlInsert = "INSERT INTO WISHLIST (conditionWish, user_id, subscription_email) VALUES (?, ?, ?)";
+            db.query(sqlInsert, [wishRequestName, userId, wishwishEmail], (err, result) => {
+              if (err) {
+                console.log(err);
+                response.status(500).send("Error while inserting into WISHLIST table");
+              } else {
+                console.log(result);
+                response.send(result);
+              }
+            });
+          }
+        });
+      });
+
 app.post("/api/searchCondition", (require, response) => {
     const searchConditionName = require.body.searchConditionName;
     const sqlSelect = "SELECT * FROM `CONDITIONS` WHERE `name`= ?";
@@ -64,6 +91,21 @@ app.post("/api/searchCondition", (require, response) => {
     });
 });
 
+app.post("/api/ListAllWish", (require, response) => {
+    const searchConditionName = require.body.searchConditionName;
+    const sqlSelect = "SELECT * FROM `WISHLIST` ";
+    db.query(sqlSelect, (err, result) => {
+        if (err){
+            console.log(err);
+            response.status(500);
+        }
+        else{
+            console.log(result);
+            response.send(result);
+        }
+
+    });
+});
 
 app.post("/api/deleteUser", (require, response) => {
   const deleteUserFirstName = require.body.deleteUserFirstName;
@@ -131,6 +173,62 @@ app.post("/api/findTopSym", (require, response) => {
 
   });
 });
+
+app.post("/api/findRelateCon", (require, response) => {
+    const findRelateConName = require.body.findRelateConName;
+    const sqlSelect = "SELECT s.name AS symptom_name, c.name AS condition_name, AVG(s.average_age) AS avg_age FROM SYMPTOMS s JOIN relate_to r1 ON s.trackable_id = r1.symptom_id JOIN CONDITIONS c ON r1.condition_id = c.trackable_id JOIN relate_to r2 ON r1.condition_id = r2.condition_id AND r1.symptom_id != r2.symptom_id WHERE s.name = ? GROUP BY s.name, c.name HAVING COUNT(DISTINCT r2.symptom_id) > 1;";
+    db.query(sqlSelect, findRelateConName, (err, result) => {
+        if (err){
+            console.log(err);
+            response.status(500);
+        }
+        else{
+            console.log(result);
+            response.send(result);
+        }
+  
+    });
+  });
+
+  app.post("/api/submitReport", (require, response) => {
+    const ReportFirstName = require.body.ReportFirstName;
+    const ReportLastName = require.body.ReportLastName;
+    const ReportPassword = require.body.ReportPassword;
+    const ReportType = require.body.ReportType;
+    const ReportSymConName = require.body.ReportSymConName;
+    const ReportDescription = require.body.ReportDescription;
+
+    const sqlCheckPassword = "SELECT user_id FROM USER WHERE FirstName = ? AND LastName = ? AND password = ?";
+    db.query(
+        sqlCheckPassword,
+        [ReportFirstName, ReportLastName, ReportPassword],
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                response.status(500).send({ message: "Error checking user password." });
+            } else if (result.length === 0) {
+                response.status(401).send({ message: "Invalid user credentials." });
+            } else {
+                const userId = result[0].user_id;
+                const sqlInsert = "INSERT INTO `REPORTING` (`user_id`, `report_type`, `reported_name`, `reported_description`) VALUES (?,?,?,?);";
+                db.query(
+                    sqlInsert,
+                    [userId, ReportType, ReportSymConName, ReportDescription],
+                    (err, result) => {
+                        if (err) {
+                            console.log(err);
+                            response.status(500).send({ message: "Error inserting report." });
+                        } else {
+                            console.log(result);
+                            response.send(result);
+                        }
+                    }
+                );
+            }
+        }
+    );
+});
+
 
 
 
