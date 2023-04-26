@@ -190,14 +190,53 @@ app.post("/api/findRelateCon", (require, response) => {
     });
   });
 
-  app.post("/api/submitReport", (require, response) => {
+  app.post("/api/submitFeedback", (require, response) => {
+    const FeedbackFirstName = require.body.FeedbackFirstName;
+    const FeedbackLastName = require.body.FeedbackLastName;
+    const FeedbackPassword = require.body.FeedbackPassword;
+    const FeedbackType = require.body.FeedbackType;
+    const FeedbackSymConName = require.body.FeedbackSymConName;
+    const FeedbackDescription = require.body.FeedbackDescription;
+
+    const sqlCheckPassword = "SELECT user_id FROM USER WHERE FirstName = ? AND LastName = ? AND password = ?";
+    db.query(
+        sqlCheckPassword,
+        [FeedbackFirstName, FeedbackLastName, FeedbackPassword],
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                response.status(500).send({ message: "Error checking user password." });
+            } else if (result.length === 0) {
+                response.status(401).send({ message: "Invalid user credentials." });
+            } else {
+                const userId = result[0].user_id; 
+                const sqlInsert = "INSERT INTO `FEEDBACK` (`user_id`, `Feedback_type`, `Feedbacked_name`, `Feedbacked_description`) VALUES (?,?,?,?);";
+                db.query(
+                    sqlInsert,
+                    [userId, FeedbackType, FeedbackSymConName, FeedbackDescription],
+                    (err, result) => {
+                        if (err) {
+                            console.log(err);
+                            response.status(500).send({ message: "Error inserting Feedback." });
+                        } else {
+                            console.log(result);
+                            response.send(result);
+                        }
+                    }
+                );
+            }
+        }
+    );
+});
+
+app.post("/api/submitReport", (require, response) => {
     const ReportFirstName = require.body.ReportFirstName;
     const ReportLastName = require.body.ReportLastName;
     const ReportPassword = require.body.ReportPassword;
     const ReportType = require.body.ReportType;
     const ReportSymConName = require.body.ReportSymConName;
     const ReportDescription = require.body.ReportDescription;
-
+  
     const sqlCheckPassword = "SELECT user_id FROM USER WHERE FirstName = ? AND LastName = ? AND password = ?";
     db.query(
         sqlCheckPassword,
@@ -210,24 +249,64 @@ app.post("/api/findRelateCon", (require, response) => {
                 response.status(401).send({ message: "Invalid user credentials." });
             } else {
                 const userId = result[0].user_id;
-                const sqlInsert = "INSERT INTO `REPORTING` (`user_id`, `report_type`, `reported_name`, `reported_description`) VALUES (?,?,?,?);";
-                db.query(
-                    sqlInsert,
-                    [userId, ReportType, ReportSymConName, ReportDescription],
-                    (err, result) => {
-                        if (err) {
-                            console.log(err);
-                            response.status(500).send({ message: "Error inserting report." });
-                        } else {
-                            console.log(result);
-                            response.send(result);
+                let sqlInsert = "";
+  
+                if (ReportType === "Symptom") {
+                    db.query(
+                        "SELECT trackable_id FROM SYMPTOMS WHERE name = ?",
+                        [ReportSymConName],
+                        (err, result) => {
+                            if (err) {
+                                console.log(err);
+                                response.status(500).send({ message: "Error finding symptom trackable_id." });
+                            } else if (result.length === 0) {
+                                response.status(404).send({ message: "Symptom not found." });
+                            } else {
+                                const symptomId = result[0].trackable_id;
+                                sqlInsert = "INSERT INTO suffer_from (user_id, symptom_id) VALUES (?, ?)";
+                                db.query(sqlInsert, [userId, symptomId], (err, result) => {
+                                    if (err) {
+                                        console.log(err);
+                                        response.status(500).send({ message: "Error inserting report." });
+                                    } else {
+                                        response.status(200).send({ message: "Report inserted successfully." });
+                                    }
+                                });
+                            }
                         }
-                    }
-                );
+                    );
+                } else if (ReportType === "Condition") {
+                    db.query(
+                        "SELECT trackable_id FROM CONDITIONS WHERE name = ?",
+                        [ReportSymConName],
+                        (err, result) => {
+                            if (err) {
+                                console.log(err);
+                                response.status(500).send({ message: "Error finding condition trackable_id." });
+                            } else if (result.length === 0) {
+                                response.status(404).send({ message: "Condition not found." });
+                            } else {
+                                const conditionId = result[0].trackable_id;
+                                sqlInsert = "INSERT INTO diagnosed_with (condition_id, user_id) VALUES (?, ?)";
+                                db.query(sqlInsert, [conditionId, userId], (err, result) => {
+                                    if (err) {
+                                        console.log(err);
+                                        response.status(500).send({ message: "Error inserting report." });
+                                    } else {
+                                        response.status(200).send({ message: "Report inserted successfully." });
+                                    }
+                                });
+                            }
+                        }
+                    );
+                } else {
+                    response.status(400).send({ message: "Invalid ReportType." });
+                }
             }
         }
     );
-});
+  });
+  
 
 
 
