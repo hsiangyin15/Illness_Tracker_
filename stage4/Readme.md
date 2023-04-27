@@ -43,6 +43,127 @@ GROUP BY u.country, c.name
 ORDER BY u.country, patients DESC
 LIMIT 5;
 ```
+### Stored Procedure1
+```
+DELIMITER //
+CREATE PROCEDURE gender_risk_level(IN user_id INT, IN user_gender VARCHAR(10))
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE condition_name VARCHAR(255);
+    DECLARE patient_count INT;
+    DECLARE sex VARCHAR(10);
+    DECLARE condition_risk_level VARCHAR(20);
+    DECLARE cur CURSOR FOR
+        SELECT c.name, COUNT(*) AS patients, u.sex
+        FROM USER u
+        JOIN diagnosed_with d ON u.user_id = d.user_id
+        JOIN CONDITIONS c ON d.condition_id = c.trackable_id
+        GROUP BY u.sex, c.name
+        ORDER BY u.sex, patients DESC;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_conditions (
+        condition_name VARCHAR(255),
+        patient_count INT,
+        sex VARCHAR(10),
+        condition_risk_level VARCHAR(20)
+    );
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO condition_name, patient_count, sex;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        IF sex <> user_gender THEN
+        ITERATE read_loop;
+        END IF;
+
+        IF patient_count > 10 THEN
+            SET condition_risk_level = 'Highest Risk';
+        ELSEIF patient_count < 10 AND patient_count >= 5 THEN
+            SET condition_risk_level = 'Medium Risk';
+        ELSE
+            SET condition_risk_level = 'Low Risk';
+        END IF;
+
+        INSERT INTO temp_conditions (condition_name, patient_count, sex, condition_risk_level)
+        VALUES (condition_name, patient_count, sex, condition_risk_level);
+    END LOOP;
+
+    CLOSE cur;
+
+    SELECT * FROM temp_conditions LIMIT 10;
+
+    DROP TEMPORARY TABLE IF EXISTS temp_conditions;
+END //
+DELIMITER ;
+
+```
+
+### Stored Procedure2
+```
+DELIMITER //
+CREATE PROCEDURE c_risk_level(IN user_id INT, IN user_country VARCHAR(255))
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE condition_name VARCHAR(255);
+    DECLARE patient_count INT;
+    DECLARE country VARCHAR(255);
+    DECLARE condition_risk_level VARCHAR(20);
+    DECLARE cur CURSOR FOR
+        SELECT c.name, COUNT(*) AS patients, u.country
+        FROM USER u
+        JOIN diagnosed_with d ON u.user_id = d.user_id
+        JOIN CONDITIONS c ON d.condition_id = c.trackable_id
+        GROUP BY u.country, c.name
+        ORDER BY u.country, patients DESC;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_conditions (
+        condition_name VARCHAR(255),
+        patient_count INT,
+        country VARCHAR(255),
+        condition_risk_level VARCHAR(20)
+    );
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO condition_name, patient_count, country;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        IF country <> user_country THEN
+        ITERATE read_loop;
+        END IF;
+
+        IF patient_count > 10 THEN
+            SET condition_risk_level = 'Highest Risk';
+        ELSEIF patient_count < 10 AND patient_count >= 5 THEN
+            SET condition_risk_level = 'Medium Risk';
+        ELSE
+            SET condition_risk_level = 'Low Risk';
+        END IF;
+
+        INSERT INTO temp_conditions (condition_name, patient_count, country, condition_risk_level)
+        VALUES (condition_name, patient_count, country, condition_risk_level);
+    END LOOP;
+
+    CLOSE cur;
+
+    SELECT * FROM temp_conditions LIMIT 10;
+
+    DROP TEMPORARY TABLE IF EXISTS temp_conditions;
+END //
+DELIMITER ;
+
+```
 ### Trigger
 ```
 SELECT c.name, COUNT(*) AS patients
