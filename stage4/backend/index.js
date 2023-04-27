@@ -306,6 +306,48 @@ app.post("/api/submitReport", (require, response) => {
         }
     );
   });
+
+  app.post("/api/submitStatus", (require, response) => {
+    const StatusFirstName = require.body.StatusFirstName;
+    const StatusLastName = require.body.StatusLastName;
+    const StatusPassword = require.body.StatusPassword;
+    const StatusType = require.body.StatusType;
+  
+    const sqlCheckPassword = "SELECT user_id FROM USER WHERE FirstName = ? AND LastName = ? AND password = ?";
+    db.query(
+        sqlCheckPassword,
+        [StatusFirstName, StatusLastName, StatusPassword],
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                response.status(500).send({ message: "Error checking user password." });
+            } else if (result.length === 0) {
+                response.status(401).send({ message: "Invalid user credentials." });
+            } else {
+                const userId = result[0].user_id;
+                let sqlSelect;
+                if (StatusType === "sex"){
+                    sqlSelect = "CALL get_conditions_with_risk_level(?);";
+                }
+                else if(StatusType === "country"){
+                    sqlSelect = "CALL get_conditions_with_risk_level_by_country(?);";
+                }
+                db.query(sqlSelect, userId, (err, result) => {
+                  if (err){
+                      console.log(err);
+                      response.status(500).send({ message: "Error retrieving conditions." });
+                  }
+                  else{
+                      console.log(result);
+                      response.send(result);
+                  }
+          
+              });
+            }
+        }
+    );
+});
+
   
 
 

@@ -58,7 +58,11 @@ function App() {
   const [ReportSymConName, setReportSymConName] = useState('');
   const [showsubmitReport, setshowsubmitReport] = useState([]);
 
-
+  const [StatusFirstName, setStatusFirstName] = useState('');
+  const [StatusLastName, setStatusLastName] = useState('');
+  const [StatusPassword, setStatusPassword] = useState('');
+  const [StatusType, setStatusType] = useState('');
+  const [showsubmitStatus, setshowsubmitStatus] = useState([]);
 
   //   useEffect(() => {
   //     Axios.get('http://localhost:3002/api/get').then((response) => {
@@ -109,7 +113,7 @@ function App() {
       })
       .catch((error) => {
         if (error.response && error.response.status === 401 || error.response.status === 500 || error.response.status === 404) {
-          console.log("wtf:)))");
+
           return setshowsubmitReport([
             {
               error: error.response.data.message,
@@ -148,6 +152,33 @@ function App() {
         console.log(error);
       });
   };
+
+
+  const submitStatus = () => {
+    Axios.post('http://localhost:3002/api/submitStatus', {
+      StatusFirstName: StatusFirstName,
+      StatusLastName: StatusLastName,
+      StatusPassword: StatusPassword,
+      StatusType: StatusType,
+    })
+      .then((response) => {
+        console.log(response.data[0]);
+        setshowsubmitStatus(response.data[0]);
+      })
+      .catch((error) => {
+        if (error.response && error.response.status === 401 || error.response.status === 500 || error.response.status === 404) {
+
+          return setshowsubmitStatus([
+            {
+              error: error.response.data.message,
+            },
+          ]);
+        }
+        console.log(error);
+      });
+  };
+
+
 
 
   const submitWish = () => {
@@ -482,6 +513,61 @@ function App() {
           })}
         </div>
       </div>
+
+      <div id="StatusAnchor" style={{ height: 4 + 'em' }}>
+
+      </div>
+      <hr style={{ width: 50 + 'em', borderWidth: 3 + 'px', color: 'white', borderColor: 'white' }}></hr>
+      <h1 style={{ marginTop: 3 + 'em', color: 'white' }}>User Status</h1>
+      <div className="row_form">
+        <input type="text" name="StatusFirstName" placeholder="First Name" onChange={(e) => {
+          setStatusFirstName(e.target.value)
+        }} /> <span>  </span>
+
+        <input type="text" name="StatusLastName" placeholder="Last Name" onChange={(e) => {
+          setStatusLastName(e.target.value)
+        }} /><span>  </span>
+
+
+        <input type="password" name="StatusPassword" placeholder="Password" onChange={(e) => {
+          setStatusPassword(e.target.value)
+        }} /><br></br>
+        <select name="StatusType" onChange={(e) => {
+          setStatusType(e.target.value)
+        }}>
+          <option value="">-- Please select Risk Type--</option>
+          <option value="sex">Gender</option>
+          <option value="country">Nationality</option>
+        </select><br></br><br></br>
+        <button type="button" class="btn btn-dark" onClick={submitStatus}> See Risk</button>
+        <div className="form">
+          {showsubmitStatus.map((val) => {
+            if (val.error) {
+              return (
+                <div className="card">
+                  <h3>Error</h3>
+                  <p>{val.error}</p>
+                </div>
+              );
+            }
+          })}
+          {showsubmitStatus.length > 0 && (
+            <div className="card">
+              {showsubmitStatus.map((val) => {
+                return (
+                  <p>
+                    Related Condition: {val.condition_name} - Patient Count: {val.patient_count}
+                    <br />
+                    For: {val.sex} {val.country} - Risk level: {val.condition_risk_level}
+                  </p>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+      </div>
+
 
       <div id="WishlistAnchor" style={{ height: 4 + 'em' }}>
 
