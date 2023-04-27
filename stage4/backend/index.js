@@ -312,8 +312,8 @@ app.post("/api/submitReport", (require, response) => {
     const StatusLastName = require.body.StatusLastName;
     const StatusPassword = require.body.StatusPassword;
     const StatusType = require.body.StatusType;
-  
-    const sqlCheckPassword = "SELECT user_id FROM USER WHERE FirstName = ? AND LastName = ? AND password = ?";
+
+    const sqlCheckPassword = "SELECT user_id,sex,country FROM USER WHERE FirstName = ? AND LastName = ? AND password = ?";
     db.query(
         sqlCheckPassword,
         [StatusFirstName, StatusLastName, StatusPassword],
@@ -325,28 +325,31 @@ app.post("/api/submitReport", (require, response) => {
                 response.status(401).send({ message: "Invalid user credentials." });
             } else {
                 const userId = result[0].user_id;
+                const userGender = result[0].sex;
+                const userCountry = result[0].country;
                 let sqlSelect;
-                if (StatusType === "sex"){
-                    sqlSelect = "CALL get_conditions_with_risk_level(?);";
+                let params;
+                if (StatusType === "sex") {
+                    sqlSelect = "CALL gender_risk_level(?, ?);";
+                    params = [userId, userGender];
+                } else if (StatusType === "country") {
+                    sqlSelect = "CALL c_risk_level(?, ?);";
+                    params = [userId, userCountry];
                 }
-                else if(StatusType === "country"){
-                    sqlSelect = "CALL get_conditions_with_risk_level_by_country(?);";
-                }
-                db.query(sqlSelect, userId, (err, result) => {
-                  if (err){
-                      console.log(err);
-                      response.status(500).send({ message: "Error retrieving conditions." });
-                  }
-                  else{
-                      console.log(result);
-                      response.send(result);
-                  }
-          
-              });
+                db.query(sqlSelect, params, (err, result) => {
+                    if (err) {
+                        console.log(err);
+                        response.status(500).send({ message: "Error retrieving conditions." });
+                    } else {
+                        console.log(result);
+                        response.send(result);
+                    }
+                });
             }
         }
     );
 });
+
 
   
 
