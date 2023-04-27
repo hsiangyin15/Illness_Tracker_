@@ -518,7 +518,7 @@ function App() {
 
       </div>
       <hr style={{ width: 50 + 'em', borderWidth: 3 + 'px', color: 'white', borderColor: 'white' }}></hr>
-      <h1 style={{ marginTop: 3 + 'em', color: 'white' }}>User Status</h1>
+      <h1 style={{ marginTop: 3 + 'em', color: 'white' }}>Risk Checker</h1>
       <div className="row_form">
         <input type="text" name="StatusFirstName" placeholder="First Name" onChange={(e) => {
           setStatusFirstName(e.target.value)
