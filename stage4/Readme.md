@@ -166,21 +166,18 @@ DELIMITER ;
 ```
 ### Trigger
 ```
-SELECT c.name, COUNT(*) AS patients
-FROM USER u
-JOIN diagnosed_with d ON u.user_id = d.user_id
-JOIN CONDITIONS c ON d.condition_id = c.trackable_id
-GROUP BY u.sex, c.name
-ORDER BY u.sex, patients DESC
-LIMIT 10;
+DELIMITER //
 
-SELECT c.name, COUNT(*) AS patients
-FROM CS411.USER u
-JOIN CS411.diagnosed_with d ON u.user_id = d.user_id
-JOIN CS411.CONDITIONS c ON d.condition_id = c.trackable_id
-GROUP BY u.country, c.name
-ORDER BY u.country, patients DESC
-LIMIT 10;
+CREATE TRIGGER update_conditions_patient_count
+AFTER INSERT ON diagnosed_with
+FOR EACH ROW
+BEGIN
+    UPDATE CONDITIONS
+    SET amount_of_patient = amount_of_patient + 1
+    WHERE trackable_id = NEW.condition_id;
+END //
+
+DELIMITER ;
 ```
 ### notes
 * After a deep look into our dataset, we found out that the data on treatment is quite unclear, and the most significant parts are only the conditions and symptoms. Therefore, we decided to only focus on those parts.
